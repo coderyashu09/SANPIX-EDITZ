@@ -712,31 +712,18 @@ if st.button("Upload Video"):
     if video:
 
         # 📁 Save video
-        def fix_video(input_path, output_path):
-            command = [
-             "ffmpeg",
-            "-i", input_path,
-             "-vf", "scale=1080:1920,setsar=1",
-             "-c:v", "libx264",
-             "-preset", "fast",
-            "-crf", "23",
-             "-c:a", "aac",
-            output_path
-            ]
-            subprocess.run(command)
 
-        temp_path = f"temp_{video.name}"
-        final_path = f"videos/fixed_{video.name}"
+        path = f"videos/{video.name}"
 
-        with open(temp_path, "wb") as f:
-            f.write(video.getbuffer())
+    with open(path, "wb") as f:
+        f.write(video.getbuffer())
 
-        fix_video(temp_path, final_path)
+    c.execute("INSERT INTO videos (file, caption) VALUES (?, ?)", (path, caption))
+    conn.commit()
 
-        c.execute("INSERT INTO videos (file, caption) VALUES (?, ?)", (final_path, caption))
-        conn.commit()
-
-        st.success("✅ Uploaded Successfully (Works on Mobile + Desktop)")
+    st.success("✅ Uploaded Successfully (Works on Mobile + Desktop)")
+    c.execute("INSERT INTO videos (file, caption) VALUES (?, ?)", (path, caption))
+    conn.commit()
 
     # ---------- ADMIN VIDEO LIST ----------
     st.markdown("### Manage Videos")
