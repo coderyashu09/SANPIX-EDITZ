@@ -131,34 +131,126 @@ conn.commit()
 # ---------------- UI ----------------
 st.markdown("""
 <style>
-body { background: linear-gradient(135deg,#0f0c29,#302b63,#24243e); color:white;}
 
-.card {
-    padding:18px;
-    border-radius:16px;
-    background: rgba(255,255,255,0.05);
-    text-align:center;
-    box-shadow:0 0 20px #00f2ff40;
+/* 🔥 BACKGROUND */
+.stApp {
+    background:
+        radial-gradient(circle at top right, rgba(0,255,255,0.08), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(180,0,255,0.08), transparent 40%),
+        #0b0b0f;
+    color: #eaeaea;
+    font-family: 'Segoe UI', sans-serif;
 }
 
+/* 🔥 TITLE */
 .title {
     text-align:center;
-    font-size:36px;
-    color:#00f2ff;
-    margin-bottom:20px;
+    font-size:42px;
+    font-weight:800;
+    background: linear-gradient(90deg,#00f2ff,#c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:0 0 25px rgba(0,242,255,0.4);
+    margin-bottom:25px;
 }
 
+/* 🔥 CARD */
+.card {
+    padding:20px;
+    border-radius:16px;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(0,255,255,0.15);
+    text-align:center;
+    transition:0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow:0 0 25px rgba(0,255,255,0.4);
+}
+
+/* 🔥 EMPTY BOX */
 .empty-box {
     display:flex;
     justify-content:center;
     align-items:center;
-    height:200px;
-    border-radius:15px;
-    background: rgba(255,255,255,0.05);
+    height:220px;
+    border-radius:16px;
+    background: rgba(255,255,255,0.03);
+    border:1px dashed rgba(255,255,255,0.1);
+    color:#aaa;
 }
+
+/* 🔥 BUTTON */
+.stButton>button {
+    border-radius:12px;
+    background: linear-gradient(90deg,#00f2ff,#a855f7);
+    color:black;
+    font-weight:600;
+    border:none;
+    transition:0.3s;
+}
+
+.stButton>button:hover {
+    box-shadow:0 0 20px #00f2ff;
+    transform: scale(1.03);
+}
+
+/* 🔥 INPUT */
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input,
+.stSelectbox div {
+    background: rgba(255,255,255,0.05) !important;
+    border-radius:10px !important;
+    border:1px solid rgba(255,255,255,0.1) !important;
+    color:white !important;
+}
+
+/* 🔥 SIDEBAR */
+section[data-testid="stSidebar"] {
+    background: rgba(15,15,20,0.9);
+    backdrop-filter: blur(15px);
+    border-right:1px solid rgba(255,255,255,0.05);
+}
+
+/* 🔥 SIDEBAR RADIO */
+.stRadio > div {
+    gap:10px;
+}
+
+.stRadio label {
+    padding:10px;
+    border-radius:10px;
+    transition:0.3s;
+}
+
+.stRadio label:hover {
+    background: rgba(255,255,255,0.05);
+    color:#00f2ff;
+}
+
+/* 🔥 TABLE */
+[data-testid="stDataFrame"] {
+    border-radius:12px;
+    overflow:hidden;
+}
+
+/* 🔥 MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .title {
+        font-size:28px;
+    }
+
+    .card {
+        padding:14px;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
-
+st.markdown("### ")
 # ---------------- FUNCTIONS ----------------
 def add_work(studio, date, desc, dur, total):
     c.execute("DELETE FROM history WHERE studio=?", (studio,))
