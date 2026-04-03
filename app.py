@@ -734,7 +734,7 @@ if st.button("Upload Video"):
         st.markdown('<div class="empty-box">No videos</div>', unsafe_allow_html=True)
     else:
         for row in vids.itertuples():
-            st.video(row.file)
+            st.video(row.file, format="video/mp4")
             st.write(row.caption)
 
             col1, col2 = st.columns([3,1])
@@ -785,7 +785,7 @@ def show_public_page():
     else:
         for row in vids.itertuples():
 
-            st.video(row.file)
+            st.video(row.file, format="video/mp4")
             st.write(row.caption)
 
             c1, c2, c3 = st.columns(3)
