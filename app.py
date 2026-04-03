@@ -3,6 +3,81 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 
+# ---------------- LOGIN SYSTEM ----------------
+PASSWORD = "0909"
+
+if "logged" not in st.session_state:
+    st.session_state.logged = False
+
+if not st.session_state.logged:
+
+    # ---- CSS (SAFE FOR STREAMLIT) ----
+    st.markdown("""
+    <style>
+    .stApp {
+        background: radial-gradient(circle at top, #1a1a2e, #0f0c29);
+    }
+
+
+
+    .logo {
+        font-size: 26px;
+        font-weight: 600;
+        color: #00f2ff;
+        text-shadow: 0 0 12px #00f2ff;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+        color: #aaa;
+        margin-bottom: 20px;
+    }
+
+    .stTextInput input {
+        background-color: rgba(255,255,255,0.06) !important;
+        border-radius: 10px !important;
+        color: white !important;
+    }
+
+    .stButton button {
+        width: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg,#00f2ff,#4facfe);
+        color: black;
+        font-weight: 600;
+        border: none;
+        padding: 10px;
+    }
+
+    .stButton button:hover {
+        box-shadow: 0 0 15px #00f2ff;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ---- CENTER USING COLUMNS (STREAMLIT SAFE) ----
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+
+    with col2:
+        st.markdown('<div class="login-card">', unsafe_allow_html=True)
+
+        st.markdown('<div class="logo">Sanpix Editz</div>', unsafe_allow_html=True)
+        st.markdown('<div class="subtitle">Enter your 4-digit password</div>', unsafe_allow_html=True)
+
+        pwd = st.text_input("", placeholder="••••", type="password")
+
+        if st.button("Unlock"):
+            if pwd == PASSWORD:
+                st.session_state.logged = True
+                st.rerun()
+            else:
+                st.error("Invalid Password")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.stop()
+
 st.set_page_config(page_title="Sanpix Editz", layout="wide")
 
 # ---------------- DATABASE ----------------
@@ -92,6 +167,11 @@ def add_work(studio, date, desc, dur, total):
 def add_payment(studio, amount):
     c.execute("INSERT INTO payments (studio,amount,date) VALUES (?,?,?)",
               (studio,amount,str(datetime.now())))
+    conn.commit()
+
+# 🔥 NEW FUNCTION
+def delete_payment(payment_id):
+    c.execute("DELETE FROM payments WHERE id=?", (payment_id,))
     conn.commit()
 
 def get_studios():
@@ -201,8 +281,20 @@ elif page == "Studio Panel":
         st.markdown("### Completed Work")
         st.dataframe(comp)
 
+        # 🔥 PAYMENT SECTION WITH DELETE
         st.markdown("### Payments")
-        st.dataframe(pay)
+
+        if pay.empty:
+            st.markdown('<div class="empty-box">No payments</div>', unsafe_allow_html=True)
+        else:
+            for row in pay.itertuples():
+                p1,p2,p3 = st.columns([3,3,1])
+                p1.write(f"₹ {row.amount}")
+                p2.write(row.date)
+
+                if p3.button("❌", key=f"pay_del{row.id}"):
+                    delete_payment(row.id)
+                    st.rerun()
 
         st.markdown("### Add Payment")
         pay_amt = st.number_input("Enter Amount")
