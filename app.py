@@ -3,78 +3,82 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 
-# ---------------- LOGIN SYSTEM ----------------
-PASSWORD = "0909"
+import smtplib
+import random
 
+EMAIL = "ykanzariya109@gmail.com"
+APP_PASSWORD = "mcmagrgmfadwrxpu"
+
+def send_email_otp(to_email, otp):
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL, APP_PASSWORD)
+
+        message = f"Subject: Sanpix OTP\n\nYour OTP is {otp}"
+        server.sendmail(EMAIL, to_email, message)
+        server.quit()
+        return True
+    except:
+        return False
+
+
+# SESSION
 if "logged" not in st.session_state:
     st.session_state.logged = False
 
+if "otp" not in st.session_state:
+    st.session_state.otp = ""
+
+if "email" not in st.session_state:
+    st.session_state.email = ""
+
+
+# LOGIN UI
 if not st.session_state.logged:
 
-    # ---- CSS (SAFE FOR STREAMLIT) ----
     st.markdown("""
     <style>
     .stApp {
-        background: radial-gradient(circle at top, #1a1a2e, #0f0c29);
+        background: radial-gradient(circle at top, #0f0c29, #000000);
     }
-
-
-
-    .logo {
-        font-size: 26px;
-        font-weight: 600;
-        color: #00f2ff;
-        text-shadow: 0 0 12px #00f2ff;
-        margin-bottom: 5px;
-    }
-
-    .subtitle {
-        font-size: 13px;
-        color: #aaa;
-        margin-bottom: 20px;
-    }
-
-    .stTextInput input {
-        background-color: rgba(255,255,255,0.06) !important;
-        border-radius: 10px !important;
-        color: white !important;
-    }
-
-    .stButton button {
-        width: 100%;
-        border-radius: 10px;
-        background: linear-gradient(90deg,#00f2ff,#4facfe);
-        color: black;
-        font-weight: 600;
-        border: none;
-        padding: 10px;
-    }
-
-    .stButton button:hover {
-        box-shadow: 0 0 15px #00f2ff;
+    .title {
+        text-align:center;
+        font-size:40px;
+        color:#00f2ff;
+        margin-top:120px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # ---- CENTER USING COLUMNS (STREAMLIT SAFE) ----
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    st.markdown('<div class="title">SANPIX EDITZ</div>', unsafe_allow_html=True)
+
+    col1,col2,col3 = st.columns([1,1,1])
 
     with col2:
-        st.markdown('<div class="login-card">', unsafe_allow_html=True)
+        email = st.text_input("Enter Email")
 
-        st.markdown('<div class="logo">Sanpix Editz</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subtitle">Enter your 4-digit password</div>', unsafe_allow_html=True)
+        if st.button("Send OTP"):
+            if "@" in email:
+                otp = str(random.randint(1000,9999))
+                if send_email_otp(email, otp):
+                    st.session_state.otp = otp
+                    st.session_state.email = email
+                    st.success("OTP sent to email")
+                else:
+                    st.error("Email failed")
+            else:
+                st.error("Invalid email")
 
-        pwd = st.text_input("", placeholder="••••", type="password")
+        otp_input = st.text_input("Enter OTP")
 
-        if st.button("Unlock"):
-            if pwd == PASSWORD:
+        if st.button("Verify OTP"):
+            if otp_input == st.session_state.otp:
                 st.session_state.logged = True
+                st.session_state.user = st.session_state.email
                 st.rerun()
             else:
-                st.error("Invalid Password")
-
-        st.markdown('</div>', unsafe_allow_html=True)
+                st.error("Invalid OTP")
 
     st.stop()
 
