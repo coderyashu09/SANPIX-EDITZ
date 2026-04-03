@@ -10,7 +10,6 @@ import sqlite3
 import pandas as pd
 import random
 import smtplib
-import subprocess
 from email.mime.text import MIMEText
 
 # ---------------- CONFIG FIRST (IMPORTANT FIX) ----------------
@@ -702,7 +701,7 @@ if page == "Public Panel":
 
     st.markdown("---")
 
-   # ---------- VIDEO UPLOAD ----------
+# ---------- VIDEO UPLOAD ----------
 st.markdown("### Upload Video")
 
 video = st.file_uploader("Upload Video", type=["mp4"])
@@ -711,20 +710,20 @@ caption = st.text_input("Caption")
 if st.button("Upload Video"):
     if video:
 
-        # 📁 Save video
-
+        # 📁 Save video directly (NO FFMPEG)
         path = f"videos/{video.name}"
 
-    with open(path, "wb") as f:
-        f.write(video.getbuffer())
+        with open(path, "wb") as f:
+            f.write(video.getbuffer())
 
-    c.execute("INSERT INTO videos (file, caption) VALUES (?, ?)", (path, caption))
-    conn.commit()
+        # 💾 Save in DB
+        c.execute(
+            "INSERT INTO videos (file, caption) VALUES (?, ?)",
+            (path, caption)
+        )
+        conn.commit()
 
-    st.success("✅ Uploaded Successfully (Works on Mobile + Desktop)")
-    c.execute("INSERT INTO videos (file, caption) VALUES (?, ?)", (path, caption))
-    conn.commit()
-
+        st.success("✅ Uploaded Successfully (Works on Mobile + Desktop)")
     # ---------- ADMIN VIDEO LIST ----------
     st.markdown("### Manage Videos")
 
