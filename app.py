@@ -19,6 +19,13 @@ st.set_page_config(page_title="Sanpix Editz", layout="wide")
 conn = sqlite3.connect("sanpix.db", check_same_thread=False)
 c = conn.cursor()
 
+# 🔥 ADD THIS HERE
+try:
+    c.execute("ALTER TABLE videos ADD COLUMN views INTEGER DEFAULT 0")
+    conn.commit()
+except:
+    pass
+
 # PUBLIC TABLES
 c.execute("""CREATE TABLE IF NOT EXISTS profile (
     id INTEGER PRIMARY KEY,
