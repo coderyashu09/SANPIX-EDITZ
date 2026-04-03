@@ -11,7 +11,6 @@ import pandas as pd
 import random
 import smtplib
 from email.mime.text import MIMEText
-from moviepy.editor import VideoFileClip
 
 # ---------------- CONFIG FIRST (IMPORTANT FIX) ----------------
 st.set_page_config(page_title="Sanpix Editz", layout="wide")
@@ -702,38 +701,29 @@ if page == "Public Panel":
 
     st.markdown("---")
 
-    # ---------- VIDEO UPLOAD ----------
-    st.markdown("### Upload Video")
+   # ---------- VIDEO UPLOAD ----------
+st.markdown("### Upload Video")
 
-    video = st.file_uploader("Upload Video", type=["mp4","mov","avi"])
-    caption = st.text_input("Caption")
+video = st.file_uploader("Upload Video", type=["mp4"])
+caption = st.text_input("Caption")
 
 if st.button("Upload Video"):
     if video:
 
-        temp_path = f"temp_{video.name}"
-        final_path = f"videos/{video.name}"
+        # 📁 Save video
+        path = f"videos/{video.name}"
 
-        # save original
-        with open(temp_path, "wb") as f:
+        with open(path, "wb") as f:
             f.write(video.getbuffer())
 
-        # 🔥 convert to mobile-friendly format
-        clip = VideoFileClip(temp_path)
-
-        clip.write_videofile(
-            final_path,
-            codec="libx264",   # ✅ H.264
-            audio_codec="aac",
-            fps=30
+        # 💾 Save in DB
+        c.execute(
+            "INSERT INTO videos (file, caption) VALUES (?, ?)",
+            (path, caption)
         )
-
-        clip.close()
-
-        c.execute("INSERT INTO videos (file,caption) VALUES (?,?)", (final_path, caption))
         conn.commit()
 
-        st.success("Uploaded (Mobile Compatible)")
+        st.success("✅ Uploaded Successfully (Works on Mobile + Desktop)")
 
     # ---------- ADMIN VIDEO LIST ----------
     st.markdown("### Manage Videos")
