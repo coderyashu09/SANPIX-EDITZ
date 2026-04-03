@@ -5,84 +5,242 @@ from datetime import datetime
 
 import smtplib
 import random
+import streamlit as st
+import sqlite3
+import pandas as pd
+import random
+import smtplib
+from email.mime.text import MIMEText
 
+# ---------------- CONFIG FIRST (IMPORTANT FIX) ----------------
+st.set_page_config(page_title="Sanpix Editz", layout="wide")
+
+# ---------------- DATABASE ----------------
+conn = sqlite3.connect("sanpix.db", check_same_thread=False)
+c = conn.cursor()
+
+# PUBLIC TABLES
+c.execute("""CREATE TABLE IF NOT EXISTS profile (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    bio TEXT,
+    image TEXT
+)""")
+
+c.execute("""CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file TEXT,
+    caption TEXT
+)""")
+
+c.execute("""CREATE TABLE IF NOT EXISTS likes (
+    video_id INTEGER,
+    user TEXT
+)""")
+
+conn.commit()
+
+# ---------------- EMAIL CONFIG ----------------
 EMAIL = "ykanzariya109@gmail.com"
 APP_PASSWORD = "mcmagrgmfadwrxpu"
+ADMIN_EMAIL = "sanjayparmar9428@gmail.com"
 
-def send_email_otp(to_email, otp):
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(EMAIL, APP_PASSWORD)
-
-        message = f"Subject: Sanpix OTP\n\nYour OTP is {otp}"
-        server.sendmail(EMAIL, to_email, message)
-        server.quit()
-        return True
-    except:
-        return False
-
-
-# SESSION
+# ---------------- SESSION ----------------
+# SESSION INIT (FIX)
 if "logged" not in st.session_state:
     st.session_state.logged = False
 
 if "otp" not in st.session_state:
     st.session_state.otp = ""
 
-if "email" not in st.session_state:
-    st.session_state.email = ""
+if "show_login" not in st.session_state:
+    st.session_state.show_login = False
+
+# 🔥 ADD THIS LINE (IMPORTANT FIX)
+if "user" not in st.session_state:
+    st.session_state.user = ""
 
 
-# LOGIN UI
-if not st.session_state.logged:
+# ---------------- SEND OTP ----------------
+def send_email_otp(to_email, otp):
+    try:
+        msg = MIMEText(f"Your OTP is {otp}")
+        msg["Subject"] = "Sanpix OTP"
+        msg["From"] = EMAIL
+        msg["To"] = to_email
 
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL, APP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        st.error(e)
+        return False
+
+# ---------------- PUBLIC PAGE ----------------
+def public_page():
+
+    import streamlit as st
+    import pandas as pd
+
+    # 🎨 STYLE
     st.markdown("""
     <style>
-    .stApp {
-        background: radial-gradient(circle at top, #0f0c29, #000000);
-    }
+
     .title {
         text-align:center;
-        font-size:40px;
-        color:#00f2ff;
-        margin-top:120px;
+        font-size:48px;
+        font-weight:800;
+        background: linear-gradient(90deg,#00f2ff,#c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom:20px;
     }
+
+    .name {
+        text-align:center;
+        font-size:22px;
+        font-weight:600;
+        margin-top:10px;
+    }
+
+    .bio {
+        text-align:center;
+        color:#aaa;
+        margin-bottom:20px;
+    }
+
     </style>
     """, unsafe_allow_html=True)
 
+    # 📦 DATA
+    prof = pd.read_sql("SELECT * FROM profile", conn)
+    vids = pd.read_sql("SELECT * FROM videos", conn)
+
+    # 🔥 TITLE
     st.markdown('<div class="title">SANPIX EDITZ</div>', unsafe_allow_html=True)
 
-    col1,col2,col3 = st.columns([1,1,1])
+    # 🔥 NAME + BIO
+    if not prof.empty:
+        st.markdown(f'<div class="name">{prof["name"][0]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="bio">{prof["bio"][0]}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="name">sanpix editz</div>', unsafe_allow_html=True)
+        st.markdown('<div class="bio">by Sanjay Parmar</div>', unsafe_allow_html=True)
+
+    # 🔘 BUTTONS
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("""
+        <a href="https://www.instagram.com/its_editor7777?igsh=MWppdTNhMW11MmJoYw==" target="_blank">
+        <button style="width:100%;border-radius:25px;background:linear-gradient(90deg,#00f2ff,#c084fc);color:black;font-weight:600;padding:10px;">
+        Instagram
+        </button></a>
+        """, unsafe_allow_html=True)
 
     with col2:
-        email = st.text_input("Enter Email")
+        st.markdown("""
+        <a href="https://wa.me/919428508840" target="_blank">
+        <button style="width:100%;border-radius:25px;background:linear-gradient(90deg,#00f2ff,#c084fc);color:black;font-weight:600;padding:10px;">
+        WhatsApp
+        </button></a>
+        """, unsafe_allow_html=True)
 
-        if st.button("Send OTP"):
-            if "@" in email:
-                otp = str(random.randint(1000,9999))
-                if send_email_otp(email, otp):
-                    st.session_state.otp = otp
-                    st.session_state.email = email
-                    st.success("OTP sent to email")
-                else:
-                    st.error("Email failed")
-            else:
-                st.error("Invalid email")
+    with col3:
+        if st.button("Admin Login", use_container_width=True):
+            st.session_state.show_login = True
+            st.rerun()
 
-        otp_input = st.text_input("Enter OTP")
+    st.markdown("---")
+    st.markdown("## 🎬 Latest Reels")
 
-        if st.button("Verify OTP"):
-            if otp_input == st.session_state.otp:
-                st.session_state.logged = True
-                st.session_state.user = st.session_state.email
+    # 🔥 SESSION INIT
+    if "selected_video" not in st.session_state:
+        st.session_state.selected_video = None
+
+    # ================= FULL VIDEO VIEW =================
+    if st.session_state.selected_video:
+
+        vid = pd.read_sql(
+            f"SELECT * FROM videos WHERE id={st.session_state.selected_video}",
+            conn
+        )
+
+        if not vid.empty:
+
+            # 🔙 BACK BUTTON
+            if st.button("⬅ Back"):
+                st.session_state.selected_video = None
                 st.rerun()
-            else:
-                st.error("Invalid OTP")
+
+            # 🎥 ORIGINAL SIZE VIDEO
+            st.video(vid["file"][0])
+            st.caption(vid["caption"][0])
+
+    # ================= GRID VIEW =================
+    else:
+
+        if vids.empty:
+            st.info("No videos available")
+
+        else:
+            cols = st.columns(3)
+
+            for i, row in enumerate(vids.itertuples()):
+                with cols[i % 3]:
+
+                    # 🎯 CLICKABLE VIDEO (NO EXTRA BUTTON)
+                    if st.button("", key=f"open_{row.id}"):
+
+                        # increase view
+                        c.execute("UPDATE videos SET views = views + 1 WHERE id=?", (row.id,))
+                        conn.commit()
+
+                        st.session_state.selected_video = row.id
+                        st.rerun()
+
+                    # 🎥 SAME SIZE LOOK
+                    st.video(row.file)
+
+# ---------------- PUBLIC FLOW ----------------
+if not st.session_state.logged and not st.session_state.show_login:
+    public_page()
+    st.stop()
+
+# 🔙 Back to Public Profile (LOGIN PAGE)
+col1, col2 = st.columns([1,6])
+with col1:
+    if st.button("⬅"):
+        st.session_state.show_login = False
+        st.rerun()
+# ---------------- LOGIN ----------------
+if not st.session_state.logged:
+
+    st.markdown("<h1 style='text-align:center;color:#00f2ff'>Admin Login</h1>", unsafe_allow_html=True)
+
+    if st.button("Send OTP"):
+        otp = str(random.randint(1000,9999))
+        if send_email_otp(ADMIN_EMAIL, otp):
+            st.session_state.otp = otp
+            st.success("OTP Sent")
+
+    otp_input = st.text_input("Enter OTP", type="password")
+
+    if st.button("Verify"):
+        if otp_input == st.session_state.otp:
+            st.session_state.logged = True
+            st.session_state.user = ADMIN_EMAIL   # 🔥 IMPORTANT
+            st.rerun()
+        else:
+            st.error("Invalid OTP")
 
     st.stop()
 
-st.set_page_config(page_title="Sanpix Editz", layout="wide")
+# ---------------- AFTER LOGIN ----------------
+st.success("Welcome Admin Dashboard (your existing app starts here)")
 
 # ---------------- DATABASE ----------------
 conn = sqlite3.connect("sanpix.db", check_same_thread=False)
@@ -282,7 +440,7 @@ def get_studios():
     return all_s["studio"].tolist()
 
 # ---------------- SIDEBAR ----------------
-page = st.sidebar.radio("", ["Dashboard","Add Work","Studio Panel","History","All Records"])
+page = st.sidebar.radio("", ["Dashboard","Add Work","Studio Panel","History","All Records","Public Panel"])
 # 🔐 Logout Button (Sidebar)
 st.sidebar.markdown("---")
 
@@ -291,6 +449,12 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state.otp = ""
     st.session_state.email = ""
     st.session_state.user = ""
+    st.rerun()
+
+# 🔙 Back to Public Profile
+if st.sidebar.button("🌐 Public Profile"):
+    st.session_state.logged = False
+    st.session_state.show_login = False
     st.rerun()
 # ---------------- DASHBOARD ----------------
 if page == "Dashboard":
@@ -456,3 +620,172 @@ elif page == "All Records":
         st.markdown('<div class="empty-box">No work available</div>', unsafe_allow_html=True)
     else:
         st.dataframe(data)
+
+
+# ================= PUBLIC PROFILE + VIDEO SYSTEM =================
+
+# 📦 DATABASE
+c.execute("""CREATE TABLE IF NOT EXISTS profile (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    bio TEXT,
+    image TEXT
+)""")
+
+c.execute("""CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file TEXT,
+    caption TEXT,
+    views INTEGER DEFAULT 0
+)""")
+
+c.execute("""CREATE TABLE IF NOT EXISTS likes (
+    video_id INTEGER,
+    user TEXT
+)""")
+
+conn.commit()
+
+# 📁 CREATE FOLDERS
+import os
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+if not os.path.exists("videos"):
+    os.makedirs("videos")
+
+
+# # ---------------- SIDEBAR ADD ----------------
+# if "Public Panel" not in ["Dashboard","Add Work","Studio Panel","History","All Records"]:
+#     pass
+
+# # Add manually in your sidebar list:
+# # "Public Panel"
+
+
+# ================= PUBLIC PANEL (ADMIN ONLY) =================
+if page == "Public Panel":
+
+    st.markdown('<div class="title">PUBLIC PROFILE</div>', unsafe_allow_html=True)
+
+    # 🔐 ADMIN CHECK
+    if st.session_state.user != ADMIN_EMAIL:
+        st.error("Access Denied")
+        st.stop()
+
+    # ---------- PROFILE ----------
+    st.markdown("### Edit Profile")
+
+    prof = pd.read_sql("SELECT * FROM profile", conn)
+
+    default_name = prof["name"][0] if not prof.empty else ""
+    default_bio = prof["bio"][0] if not prof.empty else ""
+
+    name = st.text_input("Name", value=default_name)
+    bio = st.text_area("Bio", value=default_bio)
+
+    if st.button("Save Profile"):
+
+        # keep image column empty
+        c.execute("DELETE FROM profile")
+        c.execute("INSERT INTO profile VALUES (1,?,?,?)", (name, bio, ""))
+
+        conn.commit()
+        st.success("Profile Updated")
+
+    st.markdown("---")
+
+    # ---------- VIDEO UPLOAD ----------
+    st.markdown("### Upload Video")
+
+    video = st.file_uploader("Upload Video", type=["mp4","mov","avi"])
+    caption = st.text_input("Caption")
+
+    if st.button("Upload Video"):
+        if video:
+            path = f"videos/{video.name}"
+
+            with open(path, "wb") as f:
+                f.write(video.getbuffer())  # 🔥 ORIGINAL QUALITY
+
+            c.execute("INSERT INTO videos (file,caption) VALUES (?,?)", (path,caption))
+            conn.commit()
+            st.success("Uploaded")
+
+    st.markdown("---")
+
+    # ---------- ADMIN VIDEO LIST ----------
+    st.markdown("### Manage Videos")
+
+    vids = pd.read_sql("SELECT * FROM videos", conn)
+
+    if vids.empty:
+        st.markdown('<div class="empty-box">No videos</div>', unsafe_allow_html=True)
+    else:
+        for row in vids.itertuples():
+            st.video(row.file)
+            st.write(row.caption)
+
+            col1, col2 = st.columns([3,1])
+
+            with col1:
+                st.markdown(f"""
+                    <div style="
+                    display:inline-block;
+                    padding:6px 12px;
+                    border-radius:12px;
+                    background:rgba(0,255,255,0.1);
+                    border:1px solid #00f2ff;
+                    font-size:13px;
+                    text-align:center;
+                    width:80px;
+                    ">
+                    👁 {row.views}
+                     </div>
+                    """, unsafe_allow_html=True)
+
+            if col2.button("❌ Delete", key=f"del_vid{row.id}"):
+                c.execute("DELETE FROM videos WHERE id=?", (row.id,))
+                conn.commit()
+                st.rerun()
+
+
+# ================= PUBLIC VIEW =================
+def show_public_page():
+
+    st.markdown('<div class="title">SANPIX EDITZ</div>', unsafe_allow_html=True)
+
+    prof = pd.read_sql("SELECT * FROM profile", conn)
+    vids = pd.read_sql("SELECT * FROM videos", conn)
+
+    # PROFILE
+    if not prof.empty:
+        if prof["image"][0]:
+            st.image(prof["image"][0], width=120)
+
+        st.markdown(f"### {prof['name'][0]}")
+        st.write(prof["bio"][0])
+
+    st.markdown("---")
+
+    # VIDEOS
+    if vids.empty:
+        st.markdown('<div class="empty-box">No videos available</div>', unsafe_allow_html=True)
+    else:
+        for row in vids.itertuples():
+
+            st.video(row.file)
+            st.write(row.caption)
+
+            c1, c2, c3 = st.columns(3)
+
+            # ❤️ LIKE (NO COUNT SHOWN)
+            if c1.button("❤️", key=f"like_{row.id}"):
+                c.execute("INSERT INTO likes VALUES (?,?)", (row.id,"public"))
+                conn.commit()
+
+            c2.button("💬", key=f"comment_{row.id}")
+            c3.button("🔗", key=f"share_{row.id}")
+
+            # 👁 VIEW COUNT (ADMIN ONLY LOGIC)
+            c.execute("UPDATE videos SET views = views + 1 WHERE id=?", (row.id,))
+            conn.commit()
