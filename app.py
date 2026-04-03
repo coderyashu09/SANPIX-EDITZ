@@ -191,7 +191,15 @@ def get_studios():
 
 # ---------------- SIDEBAR ----------------
 page = st.sidebar.radio("", ["Dashboard","Add Work","Studio Panel","History","All Records"])
+# 🔐 Logout Button (Sidebar)
+st.sidebar.markdown("---")
 
+if st.sidebar.button("🚪 Logout"):
+    st.session_state.logged = False
+    st.session_state.otp = ""
+    st.session_state.email = ""
+    st.session_state.user = ""
+    st.rerun()
 # ---------------- DASHBOARD ----------------
 if page == "Dashboard":
     st.markdown('<div class="title">SANPIX EDITZ</div>', unsafe_allow_html=True)
