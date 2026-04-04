@@ -118,6 +118,17 @@ def public_page():
         color:#aaa;
         margin-bottom:20px;
     }
+                
+    div.stButton > button {
+        width:100%;
+        border-radius:25px;
+        background:linear-gradient(90deg,#00f2ff,#c084fc);
+        color:black !important;
+        font-weight:600;
+        padding:12px;
+        border:none;
+    }
+
 
     </style>
     """, unsafe_allow_html=True)
@@ -138,26 +149,33 @@ def public_page():
         st.markdown('<div class="bio">by Sanjay Parmar</div>', unsafe_allow_html=True)
 
     # 🔘 BUTTONS
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown("""
-        <a href="https://www.instagram.com/its_editor7777?igsh=MWppdTNhMW11MmJoYw==" target="_blank">
-        <button style="width:100%;border-radius:25px;background:linear-gradient(90deg,#00f2ff,#c084fc);color:black;font-weight:600;padding:10px;">
-        Instagram
-        </button></a>
-        """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1,2,1])
 
     with col2:
+         b1, b2 = st.columns(2)
+
+    # 🔵 Instagram Button
+    with b1:
         st.markdown("""
-        <a href="https://wa.me/919428508840" target="_blank">
-        <button style="width:100%;border-radius:25px;background:linear-gradient(90deg,#00f2ff,#c084fc);color:black;font-weight:600;padding:10px;">
-        WhatsApp
-        </button></a>
+        <a href="https://www.instagram.com/its_editor7777?igsh=MWppdTNhMW11MmJoYw==" target="_blank">
+        <button style="
+            width:100%;
+            border-radius:25px;
+            background:linear-gradient(90deg,#00f2ff,#c084fc);
+            color:black;
+            font-weight:600;
+            padding:12px;
+            border:none;
+            cursor:pointer;
+        ">
+        Instagram
+        </button>
+        </a>
         """, unsafe_allow_html=True)
 
-    with col3:
-        if st.button("Admin Login", use_container_width=True):
+    # 🔵 Admin Button (SAME DESIGN)
+    with b2:
+        if st.button("Admin Login", key="admin_btn"):
             st.session_state.show_login = True
             st.rerun()
 
