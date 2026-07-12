@@ -157,7 +157,7 @@ def public_page():
     # 🔵 Instagram Button
     with b1:
         st.markdown("""
-        <a href="https://www.instagram.com/its_editor7777?igsh=MWppdTNhMW11MmJoYw==" target="_blank">
+        <a href="https://www.instagram.com/sanpix_editz?igsh=MWppdTNhMW11MmJoYw==" target="_blank">
         <button style="
             width:100%;
             border-radius:25px;
